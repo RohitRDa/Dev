@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    form {
+        max-width: 400px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .inline-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 20px;
+    }
+
+    .date-time-field {
+        width: 100%;
+    }
+
+    button {
+        background-color: #333;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #555;
+    }
+    .checkbox {
+        width: 90%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+
+    /* Style for checkboxes */
+    label.checkbox {
+        display: flex;
+        align-items: inherit;
+    }
+
+    label.checkbox input {
+        margin-left: 10px;
+    }
+    .input-group {
+    display: flex; /* Display the input and button side by side */
+    align-items: center; /* Vertically align the button with the input */
+}
+
+.date-time-field {
+    flex: 1; /* Allow the input to grow and fill the available space */
+    padding-right: 30px; /* Add some padding to the right of the input to make space for the button */
+}
+
+.btn-icon {
+    background-color: #333;
+    width: 30px; /* Adjust the button width */
+    text-align: center; /* Center the button text horizontally */
+    margin-left: -35px; /* Overlap the button on the input */
+    padding: 5px 0px; /* Adjust padding to move the button closer to the input field */
+    float: right; /* Align the button to the right */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.ui-autocomplete {
+
+max-height: 200px;
+
+overflow-y: auto;
+
+overflow-x: hidden;
+
+}
+.search-icon{
+    
+    color: white;
+    border: none;
+    padding: 5px 0px;
+    border-radius: 5px;
+    cursor: pointer;
+    
+}
+
+</style>
+
+<script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
+
+<script src=https://code.jquery.com/ui/1.13.0/jquery-ui.min.js></script>
+
+<link rel="stylesheet" href=https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css>
+
+
+<h1 style="text-align: center; position: fixed; background-color: #d1cdcd; width: 80%; padding: 1px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">Update Data</h1>
+
+<br><br><br>
+
+<body>
+
+    <h1 style="text-align: center;">Index -3</h1>
+
+    <br>
+    <form method="POST" action="{{ url_for('select_entry') }}" class="select-form">
+
+        <label for="entry" class="select-label">Search for an Entry:</label>
+
+        <input type="text" name="selected_user_id" id="selected_user_id" class="select-input" autocomplete="off" value="{{ selected_user_id }}">
+        
+        <button type="submit" style="position: absolute;" class="search-icon">
+            <span>&#128269;</span>
+        </button>
+    </form>
+
+    <br>
+
+    <h2 style="text-align: center;">Selected Entry Details:</h2>
+    {% if selected_entry %}
+    <div>
+        <form method="POST" action="{{ url_for('save_entry') }}" class="inline-form">
+            <label for="username">Username:</label>
+            <input type="text" name="username" value="{{ selected_entry['username'] }}" required>
+            <label for="email">Email:</label>
+            <input type="email" name="email" value="{{ selected_entry['email'] }}" required>
+            <label for="phone">Phone Number:</label>
+            <input type="text" name="phone" value="{{ selected_entry['phone'] }}" required>
+            <label for="country">Country:</label>
+            <select name="country">
+                <option value="option1" {% if selected_entry['country'] == "option1" %}selected{% endif %}>USA</option>
+                <option value="option2" {% if selected_entry['country'] == "option2" %}selected{% endif %}>India</option>
+                <option value="option3" {% if selected_entry['country'] == "option3" %}selected{% endif %}>Canada</option>
+            </select>
+            <label for="datetime">Date:</label>
+            <div class="input-group"> <!-- Add a container for the input and button -->
+                <input type="text" name="datetime" id="date-time-input" class="date-time-field" value="{{ selected_entry.formatted_datetime }}" required>
+                <button type="button" onclick="showDatePicker()" class="btn-icon">&#128197;</button>
+            </div>
+            <div id="date-picker-container" style="display: none;">
+                <input id="date-picker" type="date" onchange="updateDate()" />
+            </div>
+            
+                                    
+            <label for="subscribe_to_newsletter" class="checkbox">
+                Subscribe to Newsletter:
+                <input type="checkbox" name="subscribe_to_newsletter" {% if selected_entry['subscribe_to_newsletter'] == 'Yes' %}checked{% endif %}>
+            </label>     
+            
+            <label for="agree_to_terms" class="checkbox">
+                I Agree to Terms and Conditions:
+                <input type="checkbox" name="agree_to_terms" {% if selected_entry['agree_to_terms'] == 'Yes' %}checked{% endif %}>
+            </label>
+            
+            
+            <input type="hidden" name="selected_user_id" value="{{ selected_user_id }}">
+            <button type="submit" style="justify-content: center;">Save</button>
+        </form>
+        
+        
+        <form method="POST" action="{{ url_for('delete_entry') }}" class="inline-form">
+            <input type="hidden" name="selected_user_id" value="{{ selected_user_id }}">
+            <button type="submit" class="delete-button" style="background-color: red; color: white; justify-content: center;
+            ">Delete</button>
+        </form>
+    </div>
+
+    {% else %}
+    <p>No entry selected.</p>
+    {% endif %}
+    <br>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+        <p style="color: green;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+
+    
+    
+
+</body>
+<script>
+    function showDatePicker() {
+        const datePickerContainer = document.getElementById("date-picker-container");
+        datePickerContainer.style.display = "block";
+    }
+
+    function updateDate() {
+        const datePicker = document.getElementById("date-picker");
+        const dateTimeInput = document.getElementById("date-time-input");
+
+        if (datePicker.value) {
+            dateTimeInput.value = formatDate(new Date(datePicker.value));
+
+            const datePickerContainer = document.getElementById("date-picker-container");
+            datePickerContainer.style.display = "none";
+        }
+    }
+
+    function formatDate(inputDate) {
+        const date = new Date(inputDate);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = getMonthName(date.getMonth());
+        const year = date.getFullYear();
+
+        const formattedDate = `${day}-${month}-${year}`;
+        return formattedDate;
+    }
+
+    function getMonthName(month) {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+        return months[month];
+    }
+
+    // Set the initial value of the date picker based on the user's input
+    const dateTimeInput = document.getElementById("date-time-input");
+    const dateValue = dateTimeInput.value;
+    const formattedDate = new Date(dateValue);
+
+    if (!isNaN(formattedDate.getTime())) {
+        const datePicker = document.getElementById("date-picker");
+        datePicker.valueAsDate = formattedDate;
+    }
+
+
+    $(function() {
+        // Function to get autocomplete suggestions
+        function getAutocompleteSuggestions(term) {
+            $.ajax({
+                url: "{{ url_for('autocomplete_usernames') }}",
+                dataType: "json",
+                data: {
+                    term: term
+                },
+                success: function(data) {
+                    $("#selected_user_id").autocomplete("option", "source", data);
+                }
+            });
+        }
+
+        // Initialize the autocomplete
+        $("#selected_user_id").autocomplete({
+            source: [],  // Initialize with an empty source
+            minLength: 2,  // Minimum number of characters to start showing suggestions
+            select: function(event, ui) {
+                // Trigger the form submit when a suggestion is selected
+                $(this).val(ui.item.value);  // Set the input field value to the selected suggestion
+                $("#select-form").submit();  // Submit the form
+            }
+        });
+
+        // Event listener for input changes
+        $("#selected_user_id").on("input", function() {
+            const inputValue = $(this).val();
+
+            if (inputValue.length >= 2) {
+                getAutocompleteSuggestions(inputValue);
+            }
+        });
+    });
+
+</script>
+
+{% endblock %}
