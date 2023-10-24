@@ -128,9 +128,10 @@ def autocomplete_usernames():
 
 
 
+
 from datetime import datetime
 
-@app.route('/select_entry', methods=['POST'])
+@app.route('/select_entry', methods=['GET', 'POST'])
 def select_entry():
     selected_username = request.form['selected_user_id']
     selected_entry = None
@@ -166,6 +167,7 @@ def save_entry():
     phone = request.form['phone']
     subscribe_to_newsletter = 'Yes' if 'subscribe_to_newsletter' in request.form else 'No'
     country = request.form['country']
+    selected_username = request.form.get('selected_user_id', '')  # Set it to an empty string if it's None
 
     # Correct the format string for datetime parsing
     datetime_str_ui = request.form['datetime']  # Date in "01-Oct-2023" format from the UI
@@ -180,7 +182,7 @@ def save_entry():
 
     # Find the selected entry using the user_id
     for entry in data:
-        if entry['user_id'] == selected_user_id:
+        if str(entry['user_id']) == selected_user_id:
             selected_entry = entry
             entry['username'] = username
             entry['email'] = email
@@ -192,24 +194,14 @@ def save_entry():
             entry['agree_to_terms'] = agree_to_terms
             break
 
-        # Update the fieldnames list with the 'formatted_datetime' field if missing
-
-        fieldnames = ['user_id', 'username', 'email', 'phone', 'subscribe_to_newsletter', 'country', 'datetime', 'formatted_datetime', 'agree_to_terms']
-
-        # Remove any additional fields from the dictionary that are not in the fieldnames list
-
-        entry_to_edit = {k: v for k, v in data.items() if k in fieldnames}
-
         # Save the updated data to the CSV file
-
         with open(csv_file_path, 'w', newline='') as csv_file:
-
+            fieldnames = ['user_id', 'username', 'email', 'phone', 'subscribe_to_newsletter', 'country', 'datetime', 'formatted_datetime', 'agree_to_terms']
             csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-
             csv_writer.writeheader()
+            csv_writer.writerows(data)
 
-            csv_writer.writerow(data)
-
+    print(selected_user_id)
     flash('Data updated successfully')
 
     # Redirect back to the initial page (page3) with the update message
